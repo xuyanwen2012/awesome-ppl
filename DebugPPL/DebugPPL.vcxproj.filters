@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CudaCompile Include="main.cu" />
+    <CudaCompile Include="cuda\01_morton.cu">
+      <Filter>Cuda Source</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda\02_sort.cu">
+      <Filter>Cuda Source</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda\03_unique.cu">
+      <Filter>Cuda Source</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda\04_radix_tree.cu">
+      <Filter>Cuda Source</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda\05_edge_count.cu">
+      <Filter>Cuda Source</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda\06_prefix_sum.cu">
+      <Filter>Cuda Source</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda\07_octree.cu">
+      <Filter>Cuda Source</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda\dispatcher.cu">
+      <Filter>Cuda Source</Filter>
+    </CudaCompile>
+    <CudaCompile Include="cuda\structures.cu">
+      <Filter>Cuda Source</Filter>
+    </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="cuda\common.cuh">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda\all.cuh">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda\dispatcher.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\defines.h">
+      <Filter>Headers\Shared</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\edge_func.h">
+      <Filter>Headers\Shared</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda\helper.cuh">
+      <Filter>Headers\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda\common\helper_cuda.hpp">
+      <Filter>Headers\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda\common\helper_functions.hpp">
+      <Filter>Headers\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda\common\helper_math.hpp">
+      <Filter>Headers\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda\common\helper_string.hpp">
+      <Filter>Headers\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda\common\helper_timer.hpp">
+      <Filter>Headers\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\oct_func.h">
+      <Filter>Headers\Shared</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\structures.h">
+      <Filter>Headers\Shared</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\morton_func.h">
+      <Filter>Headers\Shared</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda\01_morton.cuh">
+      <Filter>Headers\Cuda Kernels</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda\02_sort.cuh">
+      <Filter>Headers\Cuda Kernels</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda\03_unique.cuh">
+      <Filter>Headers\Cuda Kernels</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda\04_radix_tree.cuh">
+      <Filter>Headers\Cuda Kernels</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda\05_edge_count.cuh">
+      <Filter>Headers\Cuda Kernels</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda\06_prefix_sum.cuh">
+      <Filter>Headers\Cuda Kernels</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda\07_octree.cuh">
+      <Filter>Headers\Cuda Kernels</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda\agents\unique_agent.cuh">
+      <Filter>Headers\Cuda Kernels</Filter>
+    </ClInclude>
+    <ClInclude Include="cuda\agents\prefix_sum_agent.cuh">
+      <Filter>Headers\Cuda Kernels</Filter>
+    </ClInclude>
+    <ClInclude Include="shared\brt_func.h">
+      <Filter>Headers\Host Kernels</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{45f8c7c1-11a9-43db-af64-6148211c3adb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Cuda Source">
+      <UniqueIdentifier>{0898f65f-031e-4d54-8c78-c602cf09a9d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Shared">
+      <UniqueIdentifier>{c698dc96-9248-4554-90ee-2cb71d74de33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Common">
+      <UniqueIdentifier>{39802e1a-1baf-4292-a3b6-5858278ddee0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Cuda Kernels">
+      <UniqueIdentifier>{e567c330-a81a-4e76-858e-fc48f4cc3e34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Host Kernels">
+      <UniqueIdentifier>{a844a7b1-9da4-43f8-a675-a69047c0a713}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

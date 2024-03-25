@@ -111,20 +111,6 @@ namespace gpu
 		sync_device();
 	}
 
-	//void dispatch_RemoveDuplicates_async(const int grid_size,
-	//                                     const int stream_id,
-	//                                     pipe& pipe)
-	//{
-	//}
-
-	//void RemoveDuplicates_on_complete(const int grid_size,
-	//                                  const int stream_id,
-	//                                  pipe& pipe)
-	//{
-	//	SYNC_STREAM(streams[stream_id]);
-	//	pipe.set_n_unique(pipe.im_storage.u_flag_heads[pipe.n_input() - 1]);
-	//	pipe.brt.set_n_nodes(pipe.n_unique_mortons() - 1);
-	//}
 
 	void dispatch_RemoveDuplicates_sync(const int grid_size,
 	                                    const int stream_id,
@@ -152,12 +138,6 @@ namespace gpu
 			pipe.im_storage.u_flag_heads + pipe.n_input(),
 			pipe.im_storage.u_flag_heads);
 
-		//std::exclusive_scan(
-		//	pipe.im_storage.u_flag_heads,
-		//	pipe.im_storage.u_flag_heads + pipe.n_input(),
-		//	pipe.im_storage.u_flag_heads,
-		//	0);
-
 		k_MoveDups<<<grid_size, unique_block_size, 0, stream>>>(
 			pipe.getSortedKeys(),
 			pipe.im_storage.u_flag_heads,
@@ -167,7 +147,6 @@ namespace gpu
 		SYNC_STREAM(stream);
 
 		// last element of flag_heads(prefix summed) is the number of unique elements
-
 		const auto n_unique = pipe.im_storage.u_flag_heads[pipe.n_input() - 1] + 1;
 		pipe.set_n_unique(n_unique);
 		pipe.brt.set_n_nodes(n_unique - 1);
@@ -187,7 +166,7 @@ namespace gpu
 			pipe.brt.u_has_leaf_left,
 			pipe.brt.u_has_leaf_right,
 			pipe.brt.u_left_child,
-			pipe.brt.u_parent);
+			pipe.brt.u_parents);
 	}
 
 	void dispatch_EdgeCount(const int grid_size, const int stream_id, pipe& pipe)
@@ -196,8 +175,8 @@ namespace gpu
 		const auto& stream = streams[stream_id];
 
 		k_EdgeCount<<<grid_size, block_size, 0, stream>>>(pipe.brt.u_prefix_n,
-		                                                  pipe.brt.u_parent,
-		                                                  pipe.u_edge_count,
+		                                                  pipe.brt.u_parents,
+		                                                  pipe.u_edge_counts,
 		                                                  pipe.n_brt_nodes());
 	}
 
@@ -208,8 +187,8 @@ namespace gpu
 
 		// has to be single
 		k_SingleBlockExclusiveScan<<<1, n_threads, 0, stream>>>(
-			pipe.u_edge_count,
-			pipe.u_edge_offset, // <-- output
+			pipe.u_edge_counts,
+			pipe.u_edge_offsets, // <-- output
 			pipe.n_brt_nodes());
 	}
 
@@ -220,25 +199,31 @@ namespace gpu
 		constexpr auto block_size = 512;
 		const auto& stream = streams[stream_id];
 
-		// for (auto i = 0; i < pipe.n_brt_nodes(); ++i) {
-		//   std::cout << "parent: " << pipe.brt.u_parent[i]
-		//             << " prefix_n: " << (int)pipe.brt.u_prefix_n[i] << std::endl;
-		// }
-
 		k_MakeOctNodes<<<grid_size, block_size, 0, stream>>>(
 			pipe.oct.u_children,
 			pipe.oct.u_corner,
 			pipe.oct.u_cell_size,
 			pipe.oct.u_child_node_mask,
-			pipe.u_edge_count,
-			pipe.u_edge_offset,
+			pipe.u_edge_offsets,
+			pipe.u_edge_counts,
 			pipe.getUniqueKeys(),
 			pipe.brt.u_prefix_n,
-			pipe.brt.u_parent,
+			pipe.brt.u_parents,
 			pipe.min_coord,
 			pipe.range,
 			pipe.n_brt_nodes());
 
-		std::cout << "octree built\n";
+		k_LinkLeafNodes<<<grid_size, block_size, 0, stream>>>(
+			pipe.oct.u_children,
+			pipe.oct.u_child_node_mask,
+			pipe.u_edge_offsets,
+			pipe.u_edge_counts,
+			pipe.getUniqueKeys(),
+			pipe.brt.u_has_leaf_left,
+			pipe.brt.u_has_leaf_right,
+			pipe.brt.u_prefix_n,
+			pipe.brt.u_parents,
+			pipe.brt.u_left_child,
+			pipe.n_brt_nodes());
 	}
 } // namespace gpu

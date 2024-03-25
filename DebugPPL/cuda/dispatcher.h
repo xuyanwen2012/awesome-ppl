@@ -17,18 +17,6 @@ namespace gpu
 
 	void dispatch_RadixSort(int grid_size, int stream_id, pipe& pipe);
 
-	// void dispatch_RemoveDuplicates(int grid_size,
-	//                                int stream_id,
-	//                                pipe& pipe);
-
-	void dispatch_RemoveDuplicates_async(int grid_size,
-	                                     int stream_id,
-	                                     pipe& pipe);
-
-	void RemoveDuplicates_on_complete(int grid_size,
-	                                  int stream_id,
-	                                  pipe& pipe);
-
 	void dispatch_RemoveDuplicates_sync(int grid_size,
 	                                    int stream_id,
 	                                    pipe& pipe);

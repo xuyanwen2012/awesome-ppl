@@ -22,7 +22,7 @@ struct radix_tree
 	bool* u_has_leaf_left;
 	bool* u_has_leaf_right;
 	int* u_left_child;
-	int* u_parent;
+	int* u_parents;
 
 	// ------------------------
 	// Constructors
@@ -119,8 +119,8 @@ struct pipe
 	morton_t* u_morton;
 	morton_t* u_morton_alt; // also used as the unique morton
 	radix_tree brt;
-	int* u_edge_count;
-	int* u_edge_offset;
+	int* u_edge_counts;
+	int* u_edge_offsets;
 	octree oct;
 
 	// read-only
@@ -137,7 +137,6 @@ struct pipe
 	static constexpr auto RADIX = 256;
 	static constexpr auto RADIX_PASSES = 4;
 	static constexpr auto BIN_PART_SIZE = 7680;
-	// static constexpr auto BIN_PARTS = 2;
 	static constexpr auto GLOBAL_HIST_THREADS = 128;
 	static constexpr auto BINNING_THREADS = 512;
 

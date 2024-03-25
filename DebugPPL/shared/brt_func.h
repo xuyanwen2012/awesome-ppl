@@ -62,7 +62,7 @@ namespace cpu
 		const auto has_leaf_left = out_brt->u_has_leaf_left;
 		const auto has_leaf_right = out_brt->u_has_leaf_right;
 		const auto left_child = out_brt->u_left_child;
-		const auto parent = out_brt->u_parent;
+		const auto parent = out_brt->u_parents;
 
 		// Determine direction of the range (+1 or -1)
 		int d;
