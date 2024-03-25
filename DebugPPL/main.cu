@@ -15,6 +15,8 @@
 #include "shared/edge_func.h"
 #include "shared/oct_func.h"
 
+#include "yaml-cpp/yaml.h"
+
 // ------------------ configs ------------------
 //constexpr auto n = 1920 * 1080; // ~2M
 

@@ -1,0 +1,31 @@
+Stage1:
+  Name: "Morton"
+  DeviceType: CPU
+  NumThreads: 4
+Stage2:
+  Name: "Sort"
+  DeviceType: GPU
+  GridSize: 64
+  BlockSize: 128
+Stage3:
+  Name: "Unique"
+  DeviceType: CPU
+  NumThreads: 8
+Stage4:
+  Name: "Radix Tree"
+  DeviceType: GPU
+  GridSize: 128
+  BlockSize: 256
+Stage5:
+  Name: "Edge Count"
+  DeviceType: CPU
+  NumThreads: 6
+Stage6:
+  Name: "Edge Offset"
+  DeviceType: CPU
+  NumThreads: 6
+Stage7:
+  Name: "Octree"
+  DeviceType: GPU
+  GridSize: 256
+  BlockSize: 512
