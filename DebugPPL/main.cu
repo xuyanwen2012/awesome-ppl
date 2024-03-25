@@ -133,34 +133,42 @@ void test_binary_radix_tree(const int grid_size)
 	gpu::dispatch_RemoveDuplicates_sync(grid_size, stream_id, *gpu_pip);
 	SYNC_DEVICE();
 
+	const std::vector cpu_morton(gpu_pip->u_morton_alt, gpu_pip->u_morton_alt + n);
+
+	// Yanwen: without this -1 one we will get errors.
+	const auto cpu_n_unique = gpu_pip->n_unique_mortons() - 1;
+
 	// ------- testing region ------------
 	gpu::dispatch_BuildRadixTree(grid_size, stream_id, *gpu_pip);
 	gpu::sync_stream(stream_id);
 	// -----------------------------------
 
-	auto cpu_pip = generate_pipe();
-	gpu::dispatch_ComputeMorton(grid_size, stream_id, *cpu_pip);
-	gpu::dispatch_RadixSort(grid_size, stream_id, *cpu_pip);
-	gpu::dispatch_RemoveDuplicates_sync(grid_size, stream_id, *cpu_pip);
-	SYNC_DEVICE();
+	radix_tree cpu_tree(cpu_n_unique);
 
-	for (auto i = 0; i < cpu_pip->n_unique_mortons(); i++)
+	for (auto i = 0; i < cpu_n_unique; i++)
 	{
-		cpu::process_radix_tree_i(i, cpu_pip->n_unique_mortons(), cpu_pip->getSortedKeys(), &cpu_pip->brt);
+		cpu::process_radix_tree_i(i, cpu_n_unique, cpu_morton.data(), &cpu_tree);
 	}
 
-	EXPECT_EQ(cpu_pip->n_brt_nodes(), gpu_pip->n_brt_nodes());
-
-	for (auto i = 0; i < cpu_pip->n_brt_nodes() / 2; i++)
+	for (auto i = 0; i < cpu_n_unique; i++)
 	{
-		EXPECT_EQ(cpu_pip->brt.u_prefix_n[i],
-		          gpu_pip->brt.u_prefix_n[i]);
+		ASSERT_EQ(cpu_tree.u_prefix_n[i], gpu_pip->brt.u_prefix_n[i])
+              << "Mismatch at index " << i;
+
+		ASSERT_EQ(cpu_tree.u_has_leaf_left[i], gpu_pip->brt.u_has_leaf_left[i]);
+		ASSERT_EQ(cpu_tree.u_has_leaf_right[i], gpu_pip->brt.u_has_leaf_right[i]);
+
+		ASSERT_EQ(cpu_tree.u_left_child[i], gpu_pip->brt.u_left_child[i]);
+		ASSERT_EQ(cpu_tree.u_parent[i], gpu_pip->brt.u_parent[i]);
 	}
 }
 
 TEST(BinaryRadixTree, GridSize)
 {
-	EXPECT_NO_FATAL_FAILURE(test_binary_radix_tree(16));
+	for (auto i = 1; i < 16; i++)
+	{
+		EXPECT_NO_FATAL_FAILURE(test_binary_radix_tree(i));
+	}
 }
 
 int main(int argc, char** argv)

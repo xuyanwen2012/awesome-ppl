@@ -3,6 +3,8 @@
 #include "morton_func.h"
 #include "structures.h"
 
+#include "cuda_runtime.h"
+
 namespace cpu
 {
 #if defined(__GNUC__) || defined(__clang__)
@@ -14,14 +16,14 @@ namespace cpu
 #error "CLZ not supported on this platform"
 #endif
 
-	H_D_I
+	inline
 	unsigned int ceil_div_u32(const unsigned int a, const unsigned int b)
 	{
 		assert(b != 0);
 		return (a + b - 1) / b;
 	}
 
-	H_D_I
+	inline
 	uint8_t delta_u32(const unsigned int a, const unsigned int b)
 	{
 		[[maybe_unused]] constexpr unsigned int bit1_mask =
@@ -31,7 +33,7 @@ namespace cpu
 		return static_cast<uint8_t>(CLZ(a ^ b) - 1);
 	}
 
-	H_D_I
+	inline
 	int log2_ceil_u32(const unsigned int x)
 	{
 		// Counting from LSB to MSB, number of bits before last '1'
@@ -43,7 +45,7 @@ namespace cpu
 		return static_cast<int>(n_lower_bits + ((1 << n_lower_bits) < x));
 	}
 
-	H_D_I
+	inline
 	void process_radix_tree_i(const int i,
 	                          const int n /*n_brt_nodes*/,
 	                          const morton_t* codes,
