@@ -6,6 +6,7 @@
 #include "cuda/dispatcher.h"
 #include "cuda/helper.cuh"
 #include "shared/structures.h"
+#include "shared/brt_func.h" // this is actually a CPU function
 
 #include <gtest/gtest.h>
 
@@ -42,20 +43,19 @@ void test_morton_and_sort(const int grid_size)
 	auto gpu_pip = generate_pipe();
 	const auto cpu_points = std::vector(gpu_pip->u_points, gpu_pip->u_points + n);
 
-	// generate GPU result
+	// ------- testing region ------------
 	constexpr auto stream_id = 0;
 	gpu::dispatch_ComputeMorton(grid_size, stream_id, *gpu_pip);
 	gpu::dispatch_RadixSort(grid_size, stream_id, *gpu_pip);
 	gpu::sync_stream(stream_id);
+	// -----------------------------------
 
 	// generate CPU result
 	std::vector<morton_t> cpu_morton(n);
-
 	std::transform(std::execution::par, cpu_points.begin(), cpu_points.end(), cpu_morton.begin(), [&](const auto& p)
 	{
 		return shared::xyz_to_morton32(p, min_coord, range);
 	});
-
 	std::sort(std::execution::par, cpu_morton.begin(), cpu_morton.end());
 
 	const auto is_sorted = std::is_sorted(gpu_pip->u_morton, gpu_pip->u_morton + n);
@@ -68,12 +68,10 @@ void test_morton_and_sort(const int grid_size)
 
 TEST(ComputeMorton, GridSize)
 {
-	/*for (auto i = 1; i < 16; i++)
+	for (auto i = 1; i < 16; i++)
 	{
 		EXPECT_NO_FATAL_FAILURE(test_morton_and_sort(i));
-	}*/
-
-	EXPECT_NO_FATAL_FAILURE(test_morton_and_sort(16));
+	}
 }
 
 // ===============================================
@@ -91,17 +89,17 @@ void test_unique(const int grid_size)
 	SYNC_DEVICE();
 
 	// generate CPU result (assume previous test is correct)
-	std::vector cpu_morton(gpu_pip->u_morton, gpu_pip->u_morton + n);
+	const std::vector cpu_morton(gpu_pip->u_morton, gpu_pip->u_morton + n);
 
-	// gpu unique
+	// ------- testing region ------------
 	gpu::dispatch_RemoveDuplicates_sync(grid_size, stream_id, *gpu_pip);
 	gpu::sync_stream(stream_id);
+	const auto gpu_n_unique = gpu_pip->n_unique_mortons();
+	// -----------------------------------
 
 	std::vector<morton_t> cpu_morton_alt(n);
 	const auto last = std::unique_copy(cpu_morton.begin(), cpu_morton.end(), cpu_morton_alt.begin());
 	const auto cpu_n_unique = std::distance(cpu_morton_alt.begin(), last);
-
-	const auto gpu_n_unique = gpu_pip->n_unique_mortons();
 
 	EXPECT_EQ(cpu_n_unique, gpu_n_unique);
 
@@ -114,7 +112,55 @@ void test_unique(const int grid_size)
 
 TEST(Unique, GridSize)
 {
-	EXPECT_NO_FATAL_FAILURE(test_unique(16));
+	for (auto i = 1; i < 16; i++)
+	{
+		EXPECT_NO_FATAL_FAILURE(test_unique(i));
+	}
+}
+
+// ===============================================
+//	Binary Radix Tree
+// ===============================================
+
+void test_binary_radix_tree(const int grid_size)
+{
+	auto gpu_pip = generate_pipe();
+
+	// generate GPU result
+	constexpr auto stream_id = 0;
+	gpu::dispatch_ComputeMorton(grid_size, stream_id, *gpu_pip);
+	gpu::dispatch_RadixSort(grid_size, stream_id, *gpu_pip);
+	gpu::dispatch_RemoveDuplicates_sync(grid_size, stream_id, *gpu_pip);
+	SYNC_DEVICE();
+
+	// ------- testing region ------------
+	gpu::dispatch_BuildRadixTree(grid_size, stream_id, *gpu_pip);
+	gpu::sync_stream(stream_id);
+	// -----------------------------------
+
+	auto cpu_pip = generate_pipe();
+	gpu::dispatch_ComputeMorton(grid_size, stream_id, *cpu_pip);
+	gpu::dispatch_RadixSort(grid_size, stream_id, *cpu_pip);
+	gpu::dispatch_RemoveDuplicates_sync(grid_size, stream_id, *cpu_pip);
+	SYNC_DEVICE();
+
+	for (auto i = 0; i < cpu_pip->n_unique_mortons(); i++)
+	{
+		cpu::process_radix_tree_i(i, cpu_pip->n_unique_mortons(), cpu_pip->getSortedKeys(), &cpu_pip->brt);
+	}
+
+	EXPECT_EQ(cpu_pip->n_brt_nodes(), gpu_pip->n_brt_nodes());
+
+	for (auto i = 0; i < cpu_pip->n_brt_nodes() / 2; i++)
+	{
+		EXPECT_EQ(cpu_pip->brt.u_prefix_n[i],
+		          gpu_pip->brt.u_prefix_n[i]);
+	}
+}
+
+TEST(BinaryRadixTree, GridSize)
+{
+	EXPECT_NO_FATAL_FAILURE(test_binary_radix_tree(16));
 }
 
 int main(int argc, char** argv)
